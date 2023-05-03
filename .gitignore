@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/botpy
+/.vscode
+/cogs/__pycache__
+/Lib/site-packages
+/Scripts
+/.env
+/pyvenv.cfg
