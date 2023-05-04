@@ -26,7 +26,7 @@ class Scores(commands.GroupCog, group_name='scores'):
 
     async def is_enabled(self, guildid):
         settings = self.bot.get_cog('Settings')
-        return await settings.is_cog_enabled(guildid, 'Scores')
+        return await settings.is_cog_enabled(guildid, 'scores')
 
     async def get_data(self, guildid, user):
         if guildid in self.data:

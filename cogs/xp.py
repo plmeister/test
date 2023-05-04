@@ -26,7 +26,7 @@ class XP(commands.Cog):
 
     async def is_enabled(self, guildid):
         settings = self.bot.get_cog('Settings')
-        return await settings.is_cog_enabled(guildid, 'Scores')
+        return await settings.is_cog_enabled(guildid, 'xp')
 
     async def get_data(self, guildid, user):
         if guildid in self.data:

@@ -24,7 +24,7 @@ class Greeter(commands.Cog):
 
     async def is_enabled(self, guildid):
         settings = self.bot.get_cog('Settings')
-        return await settings.is_cog_enabled(guildid, 'Scores')
+        return await settings.is_cog_enabled(guildid, 'greeter')
     
     @commands.hybrid_command()
     @commands.is_owner()
