@@ -79,9 +79,9 @@ class XP(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
-        if not await self.is_enabled(msg.guild.id):
-            return
         if msg.author.bot:
+            return
+        if not await self.is_enabled(msg.guild.id):
             return
         if len(msg.attachments) > 0:
             await self.add_xp(msg.guild, msg.author, 3)
