@@ -24,10 +24,16 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
     async def save_settings(self, guildid):
         storage = self.bot.get_cog('Storage')
         await storage.save_doc('imgreact', f'settings:{guildid}', self.settings[guildid])
+
+    async def is_enabled(self, guildid):
+        settings = self.bot.get_cog('Settings')
+        return await settings.is_cog_enabled(guildid, 'Scores')
     
     @commands.hybrid_command()
     @commands.is_owner()
     async def setup(self, ctx, storage_channel: discord.TextChannel, output_channel: discord.TextChannel, timeout: int):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         settings['channels'][storage_channel.id] = {'output_channel': output_channel.id, 'timeout': timeout}
         await self.save_settings(ctx.guild.id)
@@ -36,6 +42,8 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def remove(self, ctx, storage_channel: discord.TextChannel):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         del settings['channels']
         await self.save_settings(ctx.guild.id)
@@ -44,6 +52,8 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_timeout(self, ctx, storage_channel: discord.TextChannel, timeout: int):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         
         channels = settings['channels']
@@ -59,6 +69,8 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(payload.guild_id)
 
         channels = settings['channels']

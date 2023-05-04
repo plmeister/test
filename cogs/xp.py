@@ -24,6 +24,10 @@ class XP(commands.Cog):
         storage = self.bot.get_cog('Storage')
         await storage.save_doc('xp', f'settings:{guildid}', self.settings[guildid])
 
+    async def is_enabled(self, guildid):
+        settings = self.bot.get_cog('Settings')
+        return await settings.is_cog_enabled(guildid, 'Scores')
+
     async def get_data(self, guildid, user):
         if guildid in self.data:
             if user in self.data[guildid]:
@@ -37,6 +41,8 @@ class XP(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_xp(self, ctx, user: discord.Member, xp: int):
+        if not self.is_enabled():
+            return
         current_xp = await self.get_data(ctx.guild.id, user)
         await self.add_xp(ctx.guild, user, xp - current_xp)
     
@@ -73,6 +79,8 @@ class XP(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        if not self.is_enabled():
+            return
         if msg.author.bot:
             return
         if len(msg.attachments) > 0:
@@ -82,12 +90,16 @@ class XP(commands.Cog):
 
     @commands.hybrid_command()
     async def xp(self, ctx):
+        if not self.is_enabled():
+            return
         current_xp = await self.get_data(ctx.guild.id, ctx.author)
         await ctx.reply(f'You currently have {current_xp} XP')
 
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_level(self, ctx, level: int, role: discord.Role):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         settings['levels'] = list(filter(lambda a: a['role'] != role.id, settings['levels']))
         settings['levels'].append({'role': role.id, 'level': level})
@@ -96,6 +108,8 @@ class XP(commands.Cog):
         
     @commands.hybrid_command()
     async def show_levels(self, ctx):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         msg = ''
         for lvl in sorted(settings['levels'], key = lambda x: x['level']):
@@ -108,12 +122,16 @@ class XP(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def del_level(self, ctx, role: discord.Role):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         settings['levels'] = filter(lambda a: a['role'] != role.id, settings['levels'])
         await self.save_settings(ctx.guild.id)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        if not self.is_enabled():
+            return
         msgid = payload.message_id
         chid = payload.channel_id
         guildid = payload.guild_id

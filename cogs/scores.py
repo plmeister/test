@@ -24,6 +24,10 @@ class Scores(commands.GroupCog, group_name='scores'):
         storage = self.bot.get_cog('Storage')
         await storage.save_doc('scores', f'settings:{guildid}', self.settings[guildid])
 
+    async def is_enabled(self, guildid):
+        settings = self.bot.get_cog('Settings')
+        return await settings.is_cog_enabled(guildid, 'Scores')
+
     async def get_data(self, guildid, user):
         if guildid in self.data:
             if user in self.data[guildid]:
@@ -37,6 +41,8 @@ class Scores(commands.GroupCog, group_name='scores'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def create_race_board(self, ctx, name: str, max: int = 10):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
             settings['boards'][name] = {'type': 'race', 'max': max, 'entries': {}}
@@ -46,6 +52,8 @@ class Scores(commands.GroupCog, group_name='scores'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def create_endurance_board(self, ctx, name: str):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
             settings['boards'][name] = {'type': 'endurance', 'entries': {}}
@@ -54,6 +62,8 @@ class Scores(commands.GroupCog, group_name='scores'):
     
     @commands.hybrid_command()
     async def show_board(self, ctx, name: str):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
             await ctx.send(f"Scoreboard '{name}' not found")
@@ -76,6 +86,8 @@ class Scores(commands.GroupCog, group_name='scores'):
 
     @commands.hybrid_command()
     async def post_time(self, ctx, name: str, seconds: int):
+        if not self.is_enabled():
+            return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
             await ctx.send(f"Scoreboard '{name}' not found")
