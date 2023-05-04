@@ -1,3 +1,4 @@
-dotenv
+python-dotenv
 discord.py
 table2ascii
+motor
