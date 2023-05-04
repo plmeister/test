@@ -65,7 +65,7 @@ class Greeter(commands.Cog):
         await self.on_member_join(ctx.author)
 
     async def on_member_join(self, member):
-        if not await self.is_enabled(ctx.guild.id):
+        if not await self.is_enabled(member.guild.id):
             return
         settings = await self.load_settings(member.guild.id)
         welcome_channel = self.bot.get_channel(settings['welcome_channel'])
