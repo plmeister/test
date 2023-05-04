@@ -41,7 +41,7 @@ class Scores(commands.GroupCog, group_name='scores'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def create_race_board(self, ctx, name: str, max: int = 10):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
@@ -52,7 +52,7 @@ class Scores(commands.GroupCog, group_name='scores'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def create_endurance_board(self, ctx, name: str):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
@@ -62,7 +62,7 @@ class Scores(commands.GroupCog, group_name='scores'):
     
     @commands.hybrid_command()
     async def show_board(self, ctx, name: str):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:
@@ -86,7 +86,7 @@ class Scores(commands.GroupCog, group_name='scores'):
 
     @commands.hybrid_command()
     async def post_time(self, ctx, name: str, seconds: int):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         if name not in settings['boards']:

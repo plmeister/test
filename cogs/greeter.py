@@ -29,7 +29,7 @@ class Greeter(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_welcome_channel(self, ctx, channel: discord.TextChannel):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_channel'] = channel.id
@@ -39,7 +39,7 @@ class Greeter(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_welcome_message(self, ctx, channel: discord.TextChannel, messageid):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_message'] = {'channel': channel.id, 'msgid': messageid}
@@ -49,7 +49,7 @@ class Greeter(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_welcome_dm(self, ctx, channel: discord.TextChannel, messageid):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_dm'] = {'channel': channel.id, 'msgid': messageid}
@@ -60,12 +60,12 @@ class Greeter(commands.Cog):
     @commands.hybrid_command()
     @commands.is_owner()
     async def test_welcome(self, ctx):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         await self.on_member_join(ctx.author)
 
     async def on_member_join(self, member):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(member.guild.id)
         welcome_channel = self.bot.get_channel(settings['welcome_channel'])

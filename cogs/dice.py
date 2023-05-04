@@ -11,7 +11,7 @@ class Dice(commands.Cog):
 
     @commands.hybrid_command()
     async def roll(self, ctx, dice: str):
-        if not self.is_enabled():
+        if not await self.is_enabled(ctx.guild.id):
             return
         try:
             rolls, limit = map(int, dice.split('d'))
