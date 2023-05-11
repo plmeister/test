@@ -1,13 +1,13 @@
 ﻿from discord.ext import commands
 import discord
-import random
+from dictcache import DictCache
 
 class XP(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = {}
-        self.data = {}
-
+        self.settings = DictCache()
+        self.data = DictCache()
+        
     async def load_settings(self, guildid):
         if guildid in self.settings:
             return self.settings[guildid]
@@ -23,11 +23,11 @@ class XP(commands.Cog):
     async def save_settings(self, guildid):
         storage = self.bot.get_cog('Storage')
         await storage.save_doc('xp', f'settings:{guildid}', self.settings[guildid])
-
+        
     async def is_enabled(self, guildid):
         settings = self.bot.get_cog('Settings')
         return await settings.is_cog_enabled(guildid, 'xp')
-
+    
     async def get_data(self, guildid, user):
         if guildid in self.data:
             if user in self.data[guildid]:

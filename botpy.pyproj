@@ -31,6 +31,7 @@
     <Compile Include="cogs\image_reactions.py" />
     <Compile Include="cogs\settings.py" />
     <Compile Include="cogs\__init__.py" />
+    <Compile Include="dictcache.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />

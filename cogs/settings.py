@@ -1,9 +1,11 @@
 from discord.ext import commands
 
+from dictcache import DictCache
+
 class Settings(commands.GroupCog, group_name='settings'):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = {}
+        self.settings = DictCache()
         
     async def load_settings(self, guildid):
         if guildid in self.settings:

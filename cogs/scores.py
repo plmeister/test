@@ -2,11 +2,13 @@
 import discord
 from table2ascii import table2ascii as t2a, PresetStyle
 
+from dictcache import DictCache
+
 class Scores(commands.GroupCog, group_name='scores'):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = {}
-        self.data = {}
+        self.settings = DictCache()
+        self.data = DictCache()
 
     async def load_settings(self, guildid):
         if guildid in self.settings:

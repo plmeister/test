@@ -1,11 +1,12 @@
 import discord
 from discord.ext import commands
+from dictcache import DictCache
 
-class Greeter(commands.Cog):
+class Greeter(commands.GroupCog, group_name='greeter'):
     def __init__(self, bot):
         self.bot = bot
-        self.settings = {}
-        
+        self.settings = DictCache()
+    
     async def load_settings(self, guildid):
         if guildid in self.settings:
             return self.settings[guildid]
