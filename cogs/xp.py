@@ -130,7 +130,7 @@ class XP(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if not await self.is_enabled(ctx.guild.id):
+        if not await self.is_enabled(payload.guild.id):
             return
         msgid = payload.message_id
         chid = payload.channel_id
