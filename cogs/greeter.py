@@ -78,7 +78,7 @@ class Greeter(commands.GroupCog, group_name='greeter'):
         
         if welcome_channel is not None:
             files = [await a.to_file() for a in welcome_message.attachments]
-            await welcome_channel.send(content = welcome_message.content, files=files)
+            await welcome_channel.send(content = welcome_message.content.replace('<member>', member.mention), files=files)
 
             files = [await a.to_file() for a in dm.attachments]
             member_dm = await member.create_dm()
