@@ -47,7 +47,63 @@ class XP(commands.GroupCog, group_name='xp'):
         current_xp = await self.get_data(ctx.guild.id, user)
         await self.add_xp(ctx.guild, user, xp - current_xp)
     
-    async def add_xp(self, guild, user, value):
+    @commands.hybrid_command()
+    @commands.is_owner()
+    async def set_xp_for_role(self, ctx, role: discord.Role, xp: int):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        affected = 0
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if (current_xp != 0):
+                await self.add_xp(ctx.guild, m, xp - current_xp)
+                affected += 1
+        await ctx.send(f'Affected {affected} members')
+
+    @commands.hybrid_command()
+    @commands.is_owner()
+    async def adjust(self, ctx, role: discord.Role, percent: int):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        affected = 0
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if (current_xp != 0):
+                new_xp = int((current_xp * percent) / 100)
+                await self.add_xp(ctx.guild, m, new_xp - current_xp)
+                affected += 1
+        await ctx.send(f'Affected {affected} members')
+
+    @commands.hybrid_command()
+    @commands.is_owner()
+    async def boost(self, ctx, role: discord.Role, amount: int):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        affected = 0
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if (current_xp != 0):
+                await self.add_xp(ctx.guild, m, amount)
+                affected += 1
+        await ctx.send(f'Affected {affected} members')
+
+    @commands.hybrid_command()
+    @commands.is_owner()
+    async def leaderboard(self, ctx, role: discord.Role):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        affected = 0
+        data = []
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if (current_xp != 0):
+                data.append([m, current_xp])
+        data = sorted(data, key = lambda x: -x[1])
+        output = t2a(header=["Member", "XP"], body=data, style=PresetStyle.thin_compact)
+        await ctx.send(f'```\n{output}\n```')
+
+
+    async def add_xp(self, guild, user, value: int):
         storage = self.bot.get_cog('Storage')
         settings = await self.load_settings(guild.id)
         current_xp = await self.get_data(guild.id, user)
@@ -85,7 +141,7 @@ class XP(commands.GroupCog, group_name='xp'):
         if not await self.is_enabled(msg.guild.id):
             return
         if len(msg.attachments) > 0:
-            await self.add_xp(msg.guild, msg.author, 3)
+            await self.add_xp(msg.guild, msg.author, 2)
         else:
             await self.add_xp(msg.guild, msg.author, 1)
 
