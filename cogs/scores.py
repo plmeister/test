@@ -41,7 +41,7 @@ class Scores(commands.GroupCog, group_name='scores'):
         return current_xp
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(discord.Permissions.administrator)
+    @commands.has_guild_permissions(administrator=True)
     async def create_race_board(self, ctx, name: str, max: int = 10):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -52,7 +52,7 @@ class Scores(commands.GroupCog, group_name='scores'):
             await ctx.send(f"Race Scoreboard '{name}' created")
     
     @commands.hybrid_command()
-    @commands.has_guild_permissions(discord.Permissions.administrator)
+    @commands.has_guild_permissions(administrator=True)
     async def create_endurance_board(self, ctx, name: str):
         if not await self.is_enabled(ctx.guild.id):
             return

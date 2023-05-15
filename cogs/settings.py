@@ -24,7 +24,7 @@ class Settings(commands.GroupCog, group_name='settings'):
         await storage.save_doc('settings', f'cogs:{guildid}', self.settings[guildid])
     
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(administrator=True)
     async def enable_cog(self, ctx, cogname: str):
         settings = await self.load_settings(ctx.guild.id)
         settings[cogname] = True
@@ -32,7 +32,7 @@ class Settings(commands.GroupCog, group_name='settings'):
         await ctx.send(f'Enabled cog "{cogname}"')
     
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(administrator=True)
     async def disable_cog(self, ctx, cogname: str):
         settings = await self.load_settings(ctx.guild.id)
         settings[cogname] = False
