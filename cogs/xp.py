@@ -90,11 +90,12 @@ class XP(commands.GroupCog, group_name='xp'):
             await self.add_xp(msg.guild, msg.author, 1)
 
     @commands.hybrid_command()
-    async def xp(self, ctx):
+    async def check(self, ctx):
         if not await self.is_enabled(ctx.guild.id):
             return
         current_xp = await self.get_data(ctx.guild.id, ctx.author)
-        await ctx.reply(f'You currently have {current_xp} XP')
+        await self.add_xp(ctx.guild, ctx.author, -10)
+        await ctx.reply(f'You currently have {current_xp} XP... oh no actually - check that again..')
 
     @commands.hybrid_command()
     @commands.is_owner()
