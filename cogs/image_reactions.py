@@ -32,7 +32,7 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         return await settings.is_cog_enabled(guildid, 'imgreact')
     
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def setup(self, ctx, storage_channel: discord.TextChannel, output_channel: discord.TextChannel, timeout: int):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -43,7 +43,7 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         await ctx.send('Done')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def remove(self, ctx, storage_channel: discord.TextChannel):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -53,7 +53,7 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         await ctx.send('Done')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def set_timeout(self, ctx, storage_channel: discord.TextChannel, timeout: int):
         if not await self.is_enabled(ctx.guild.id):
             return

@@ -40,7 +40,7 @@ class XP(commands.GroupCog, group_name='xp'):
         return current_xp
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def set_xp(self, ctx, user: discord.Member, xp: int):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -48,7 +48,7 @@ class XP(commands.GroupCog, group_name='xp'):
         await self.add_xp(ctx.guild, user, xp - current_xp)
     
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def set_xp_for_role(self, ctx, role: discord.Role, xp: int):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -61,7 +61,7 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def adjust(self, ctx, role: discord.Role, percent: int):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -75,7 +75,7 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def boost(self, ctx, role: discord.Role, amount: int):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -88,7 +88,7 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def leaderboard(self, ctx, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -154,7 +154,7 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.reply(f'You currently have {current_xp} XP... oh no actually - check that again..')
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def set_level(self, ctx, level: int, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -180,7 +180,7 @@ class XP(commands.GroupCog, group_name='xp'):
             await ctx.send(f"```\n{output}\n```")
 
     @commands.hybrid_command()
-    @commands.is_owner()
+    @commands.has_guild_permissions(discord.Permissions.administrator)
     async def del_level(self, ctx, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
             return
@@ -195,7 +195,6 @@ class XP(commands.GroupCog, group_name='xp'):
             return
         msgid = payload.message_id
         chid = payload.channel_id
-        guildid = payload.guild_id
 
         ch = self.bot.get_channel(chid)
         msg = await ch.fetch_message(msgid)
@@ -210,7 +209,6 @@ class XP(commands.GroupCog, group_name='xp'):
             return
         msgid = payload.message_id
         chid = payload.channel_id
-        guildid = payload.guild_id
 
         ch = self.bot.get_channel(chid)
         msg = await ch.fetch_message(msgid)

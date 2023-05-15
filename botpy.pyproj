@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="bot.py" />
+    <Compile Include="checks.py" />
     <Compile Include="cogs\storage.py" />
     <Compile Include="cogs\scores.py" />
     <Compile Include="cogs\count.py" />
