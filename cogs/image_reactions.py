@@ -37,6 +37,7 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
+        
         settings['channels'][str(storage_channel.id)] = {'output_channel': output_channel.id, 'timeout': timeout}
         await self.save_settings(ctx.guild.id)
         await ctx.send('Done')
@@ -93,13 +94,18 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         msg = await ch.fetch_message(payload.message_id)
         
         if len(msg.attachments) == 1:
-            f = await msg.attachments[0].to_file()
-            await output.send(file=f, delete_after=timeout)
+            fu = msg.attachments[0].url
+            e = discord.Embed()
+            e.set_image(url=fu)
+            await output.send(embed=e, delete_after=timeout)
 
         elif len(msg.attachments) == 2:
-            f1 = await msg.attachments[0].to_file()
-            f2 = await msg.attachments[1].to_file()
-            m = await output.send(file=f1)
+            fu1 = msg.attachments[0].url
+            fu2 = msg.attachments[1].url
+            e = discord.Embed()
+            e.set_image(url=fu1)
+            m = await output.send(embed=e)
             await asyncio.sleep(timeout)
-            await m.edit(attachments=[f2])
+            e.set_image(url=fu2)
+            await m.edit(embed=e)
                 
