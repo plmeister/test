@@ -64,7 +64,8 @@ class Greeter(commands.GroupCog, group_name='greeter'):
         if not await self.is_enabled(ctx.guild.id):
             return
         await self.on_member_join(ctx.author)
-
+        
+    @commands.Cog.listener()
     async def on_member_join(self, member):
         if not await self.is_enabled(member.guild.id):
             return

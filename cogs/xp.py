@@ -1,6 +1,7 @@
 ﻿from discord.ext import commands
 import discord
 from dictcache import DictCache
+from table2ascii import table2ascii as t2a, PresetStyle
 
 class XP(commands.Cog):
     def __init__(self, bot):
@@ -111,13 +112,15 @@ class XP(commands.Cog):
         if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
-        msg = ''
+        data = []
         for lvl in sorted(settings['levels'], key = lambda x: x['level']):
-            msg += f'{lvl["level"]} - {lvl["role"]}\n'
-        if msg == '':
+            role = ctx.guild.get_role(lvl['role'])
+            data.append([lvl["level"], role])
+        if data == []:
             await ctx.send('No levels configured')
         else:
-            await ctx.send(msg)
+            output = t2a(header=["Level", "Role"], body=data, style=PresetStyle.thin_compact)
+            await ctx.send(f"```\n{output}\n```")
 
     @commands.hybrid_command()
     @commands.is_owner()
@@ -125,12 +128,13 @@ class XP(commands.Cog):
         if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
-        settings['levels'] = filter(lambda a: a['role'] != role.id, settings['levels'])
+        settings['levels'] = list(filter(lambda a: a['role'] != role.id, settings['levels']))
         await self.save_settings(ctx.guild.id)
+        await ctx.send("done")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if not await self.is_enabled(payload.guild.id):
+        if not await self.is_enabled(payload.guild_id):
             return
         msgid = payload.message_id
         chid = payload.channel_id
@@ -141,5 +145,20 @@ class XP(commands.Cog):
             
         if payload.member.guild.owner.id == payload.member.id:
             if payload.emoji.name == '💯':
-                await self.add_xp(msg.guild, msg.author, 100)
+                await self.add_xp(msg.guild, msg.author, 10)
+                
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        if not await self.is_enabled(payload.guild_id):
+            return
+        msgid = payload.message_id
+        chid = payload.channel_id
+        guildid = payload.guild_id
+
+        ch = self.bot.get_channel(chid)
+        msg = await ch.fetch_message(msgid)
+            
+        if payload.member.guild.owner.id == payload.member.id:
+            if payload.emoji.name == '💯':
+                await self.add_xp(msg.guild, msg.author, -10)
 

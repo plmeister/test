@@ -34,17 +34,17 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def setup(self, ctx, storage_channel: discord.TextChannel, output_channel: discord.TextChannel, timeout: int):
-        if not self.is_enabled(ctx.guild.id):
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
-        settings['channels'][storage_channel.id] = {'output_channel': output_channel.id, 'timeout': timeout}
+        settings['channels'][str(storage_channel.id)] = {'output_channel': output_channel.id, 'timeout': timeout}
         await self.save_settings(ctx.guild.id)
         await ctx.send('Done')
 
     @commands.hybrid_command()
     @commands.is_owner()
     async def remove(self, ctx, storage_channel: discord.TextChannel):
-        if not self.is_enabled(ctx.guild.id):
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         del settings['channels']
@@ -54,16 +54,16 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
     @commands.hybrid_command()
     @commands.is_owner()
     async def set_timeout(self, ctx, storage_channel: discord.TextChannel, timeout: int):
-        if not self.is_enabled(ctx.guild.id):
+        if not await self.is_enabled(ctx.guild.id):
             return
         settings = await self.load_settings(ctx.guild.id)
         
         channels = settings['channels']
-        if storage_channel.id not in channels:
+        if str(storage_channel.id) not in channels:
             await ctx.send(f"Channel {storage_channel} is not set up as a storage channel")
             return
 
-        thischan = channels[storage_channel.id]
+        thischan = channels[str(storage_channel.id)]
         thischan['timeout'] = timeout
 
         await self.save_settings(ctx.guild.id)
@@ -71,15 +71,15 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if not self.is_enabled(payload.guild.id):
+        if not await self.is_enabled(payload.guild_id):
             return
         settings = await self.load_settings(payload.guild_id)
 
         channels = settings['channels']
-        if payload.channel_id not in channels:
+        if str(payload.channel_id) not in channels:
             return
 
-        thischan = channels[payload.channel_id]
+        thischan = channels[str(payload.channel_id)]
         
         output_channel = thischan['output_channel']
         timeout = thischan['timeout']
