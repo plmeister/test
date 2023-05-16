@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
-from dictcache import DictCache
+from ..dictcache import DictCache
+from .. import checks
 
 class Greeter(commands.GroupCog, group_name='greeter'):
     def __init__(self, bot):

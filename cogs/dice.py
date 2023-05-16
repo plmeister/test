@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 import random
-import checks
+from .. import checks
 
 class Dice(commands.Cog):
     def __init__(self, bot):

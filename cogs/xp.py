@@ -1,8 +1,8 @@
 ﻿from discord.ext import commands
 import discord
-from dictcache import DictCache
+from ..dictcache import DictCache
 from table2ascii import table2ascii as t2a, PresetStyle
-import checks
+from .. import checks
 
 class XP(commands.GroupCog, group_name='xp'):
     def __init__(self, bot):

@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
-from dictcache import DictCache
+from ..dictcache import DictCache
+from .. import checks
 
 class Settings(commands.GroupCog, group_name='settings'):
     def __init__(self, bot):

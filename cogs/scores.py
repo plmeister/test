@@ -2,7 +2,8 @@
 import discord
 from table2ascii import table2ascii as t2a, PresetStyle
 
-from dictcache import DictCache
+from ..dictcache import DictCache
+from .. import checks
 
 class Scores(commands.GroupCog, group_name='scores'):
     def __init__(self, bot):
