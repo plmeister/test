@@ -5,7 +5,7 @@ async def is_admin(bot, ctx):
     if not ctx.guild:
         raise discord.NoPrivateMessage
         
-    if ctx.author.guild_permissions['administrator'] == True:
+    if ctx.author.guild_permissions.administrator == True:
         return True
         
     settings = bot.get_cog('Settings')

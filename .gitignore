@@ -4,8 +4,8 @@
 
 /.vs/botpy
 /.vscode
-/cogs/__pycache__
 /Lib/site-packages
 /Scripts
 /.env
 /pyvenv.cfg
+**/__pycache__
