@@ -32,9 +32,10 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         return await settings.is_cog_enabled(guildid, 'imgreact')
     
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def setup(self, ctx, storage_channel: discord.TextChannel, output_channel: discord.TextChannel, timeout: int):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         
@@ -43,9 +44,10 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         await ctx.send('Done')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def remove(self, ctx, storage_channel: discord.TextChannel):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         del settings['channels']
@@ -53,9 +55,10 @@ class ImgReact(commands.GroupCog, group_name='imgreact'):
         await ctx.send('Done')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_timeout(self, ctx, storage_channel: discord.TextChannel, timeout: int):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         

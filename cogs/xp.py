@@ -2,6 +2,7 @@
 import discord
 from dictcache import DictCache
 from table2ascii import table2ascii as t2a, PresetStyle
+import checks
 
 class XP(commands.GroupCog, group_name='xp'):
     def __init__(self, bot):
@@ -40,18 +41,22 @@ class XP(commands.GroupCog, group_name='xp'):
         return current_xp
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_xp(self, ctx, user: discord.Member, xp: int):
         if not await self.is_enabled(ctx.guild.id):
+            return        
+        if not await checks.is_admin(self.bot, ctx):
             return
+
         current_xp = await self.get_data(ctx.guild.id, user)
         await self.add_xp(ctx.guild, user, xp - current_xp)
     
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_xp_for_role(self, ctx, role: discord.Role, xp: int):
         if not await self.is_enabled(ctx.guild.id):
             return
+        if not await checks.is_admin(self.bot, ctx):
+            return
+
         affected = 0
         for m in role.members:
             current_xp = await self.get_data(ctx.guild.id, m)
@@ -61,9 +66,10 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def adjust(self, ctx, role: discord.Role, percent: int):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         affected = 0
         for m in role.members:
@@ -75,9 +81,10 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def boost(self, ctx, role: discord.Role, amount: int):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         affected = 0
         for m in role.members:
@@ -88,9 +95,10 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def leaderboard(self, ctx, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         affected = 0
         data = []
@@ -154,9 +162,10 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.reply(f'You currently have {current_xp} XP... oh no actually - check that again..')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_level(self, ctx, level: int, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['levels'] = list(filter(lambda a: a['role'] != role.id, settings['levels']))
@@ -180,10 +189,12 @@ class XP(commands.GroupCog, group_name='xp'):
             await ctx.send(f"```\n{output}\n```")
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def del_level(self, ctx, role: discord.Role):
         if not await self.is_enabled(ctx.guild.id):
             return
+        if not await checks.is_admin(self.bot, ctx):
+            return
+
         settings = await self.load_settings(ctx.guild.id)
         settings['levels'] = list(filter(lambda a: a['role'] != role.id, settings['levels']))
         await self.save_settings(ctx.guild.id)

@@ -28,9 +28,10 @@ class Greeter(commands.GroupCog, group_name='greeter'):
         return await settings.is_cog_enabled(guildid, 'greeter')
     
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_welcome_channel(self, ctx, channel: discord.TextChannel):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_channel'] = channel.id
@@ -38,9 +39,10 @@ class Greeter(commands.GroupCog, group_name='greeter'):
         await ctx.send(f'Welcome channel set to {channel}')
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_welcome_message(self, ctx, channel: discord.TextChannel, messageid):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_message'] = {'channel': channel.id, 'msgid': messageid}
@@ -48,9 +50,10 @@ class Greeter(commands.GroupCog, group_name='greeter'):
         await ctx.send("Welcome message set")
 
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def set_welcome_dm(self, ctx, channel: discord.TextChannel, messageid):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         settings = await self.load_settings(ctx.guild.id)
         settings['welcome_dm'] = {'channel': channel.id, 'msgid': messageid}
@@ -59,9 +62,10 @@ class Greeter(commands.GroupCog, group_name='greeter'):
 
         
     @commands.hybrid_command()
-    @commands.has_guild_permissions(administrator=True)
     async def test_welcome(self, ctx):
         if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
             return
         await self.on_member_join(ctx.author)
         
@@ -87,5 +91,7 @@ class Greeter(commands.GroupCog, group_name='greeter'):
     @commands.command()
     @commands.has_guild_permissions(administrator=True)
     async def sync(self, ctx):
+        if not await checks.is_admin(self.bot, ctx):
+            return
         await self.bot.tree.sync()
 
