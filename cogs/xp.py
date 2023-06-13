@@ -169,7 +169,7 @@ class XP(commands.GroupCog, group_name='xp'):
         current_xp = await storage.get_value('xp', f'{guildid}:{str(user.id)}', {'null': True})
         if current_xp == {'null': True}:
             current_xp = await storage.get_value('xp', f'{guildid}:{user}', 0)
-        if type(current_xp) is int:
+        if not (type(current_xp) is dict):
             current_xp = {'xp': current_xp, 'activity': 0, 'name': user.name}
         
         return current_xp
