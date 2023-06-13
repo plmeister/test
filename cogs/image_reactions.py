@@ -4,8 +4,8 @@ from discord import Message
 from discord.ext import commands
 from discord.ext import tasks
 
-from ..dictcache import DictCache
-from .. import checks
+from dictcache import DictCache
+import checks
 
 class ImgReact(commands.GroupCog, group_name='imgreact'):
     def __init__(self, bot):

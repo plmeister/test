@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
-from ..dictcache import DictCache
-from .. import checks
+from dictcache import DictCache
+import checks
 
 class Greeter(commands.GroupCog, group_name='greeter'):
     def __init__(self, bot):
@@ -90,8 +90,9 @@ class Greeter(commands.GroupCog, group_name='greeter'):
             await member_dm.send(content = dm.content, files = files)
             
     @commands.command()
-    @commands.has_guild_permissions(administrator=True)
     async def sync(self, ctx):
+        if not await checks.is_admin(self.bot, ctx):
+            return
         if not await checks.is_admin(self.bot, ctx):
             return
         await self.bot.tree.sync()

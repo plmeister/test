@@ -1,8 +1,9 @@
 ﻿from discord.ext import commands
 import discord
-from ..dictcache import DictCache
+from dictcache import DictCache
 from table2ascii import table2ascii as t2a, PresetStyle
-from .. import checks
+import checks
+from datetime import datetime, timezone
 
 class XP(commands.GroupCog, group_name='xp'):
     def __init__(self, bot):
@@ -32,12 +33,12 @@ class XP(commands.GroupCog, group_name='xp'):
     
     async def get_data(self, guildid, user):
         if guildid in self.data:
-            if user in self.data[guildid]:
-                return self.data[guildid][user]
+            if str(user.id) in self.data[guildid]:
+                return self.data[guildid][str(user.id)]
         else:
             self.data[guildid] = {}
         current_xp = await self.get_xp(guildid, user)
-        self.data[guildid][user] = current_xp
+        self.data[guildid][str(user.id)] = current_xp
         return current_xp
 
     @commands.hybrid_command()
@@ -48,7 +49,7 @@ class XP(commands.GroupCog, group_name='xp'):
             return
 
         current_xp = await self.get_data(ctx.guild.id, user)
-        await self.add_xp(ctx.guild, user, xp - current_xp)
+        await self.add_xp(ctx.guild, user, xp - current_xp['xp'])
     
     @commands.hybrid_command()
     async def set_xp_for_role(self, ctx, role: discord.Role, xp: int):
@@ -61,7 +62,7 @@ class XP(commands.GroupCog, group_name='xp'):
         for m in role.members:
             current_xp = await self.get_data(ctx.guild.id, m)
             if (current_xp != 0):
-                await self.add_xp(ctx.guild, m, xp - current_xp)
+                await self.add_xp(ctx.guild, m, xp - current_xp['xp'])
                 affected += 1
         await ctx.send(f'Affected {affected} members')
 
@@ -76,7 +77,7 @@ class XP(commands.GroupCog, group_name='xp'):
             current_xp = await self.get_data(ctx.guild.id, m)
             if (current_xp != 0):
                 new_xp = int((current_xp * percent) / 100)
-                await self.add_xp(ctx.guild, m, new_xp - current_xp)
+                await self.add_xp(ctx.guild, m, new_xp - current_xp['xp'])
                 affected += 1
         await ctx.send(f'Affected {affected} members')
 
@@ -95,32 +96,58 @@ class XP(commands.GroupCog, group_name='xp'):
         await ctx.send(f'Affected {affected} members')
 
     @commands.hybrid_command()
-    async def leaderboard(self, ctx, role: discord.Role):
+    async def leaderboard(self, ctx, role: discord.Role, limit: int = 10, page: int = 1):
         if not await self.is_enabled(ctx.guild.id):
             return
         if not await checks.is_admin(self.bot, ctx):
             return
-        affected = 0
+        
         data = []
         for m in role.members:
             current_xp = await self.get_data(ctx.guild.id, m)
-            if (current_xp != 0):
-                data.append([m, current_xp])
+            if (current_xp['xp'] != 0):
+                data.append([m.display_name, current_xp['xp']])
         data = sorted(data, key = lambda x: -x[1])
-        output = t2a(header=["Member", "XP"], body=data, style=PresetStyle.thin_compact)
-        await ctx.send(f'```\n{output}\n```')
+        d2 = []
+        prev = None
+        for i,d in enumerate(data):
+            if d[1] != prev:
+                place,prev = i+1,d[1]
+            d2.append([place, d[0][:15], d[1]])
+        page_counter = 1
+        while d2 != []:
+            paged_data, d2 = d2[:limit], d2[limit:]
+            output = t2a(header=["Rank", "Member", "XP"], body=paged_data, style=PresetStyle.thin_compact)
+            await ctx.channel.send(f'```\n{output}\n(page {page_counter})```')
+            page_counter += 1
 
+    @commands.hybrid_command()
+    async def mark_inactive(self, ctx, role: discord.Role, add_to_role: discord.Role, days_inactive: int):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
+            return
+        timenow = int(datetime.now(timezone.utc).timestamp())
+        seconds_inactive = days_inactive * 86400
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if timenow - current_xp['activity'] > seconds_inactive:
+                await m.add_roles(add_to_role)
+            else:
+                await m.remove_roles(add_to_role)
 
-    async def add_xp(self, guild, user, value: int):
+    async def add_xp(self, guild, user, value: int, mark_activity: bool = False):
         storage = self.bot.get_cog('Storage')
         settings = await self.load_settings(guild.id)
         current_xp = await self.get_data(guild.id, user)
-        current_xp += value
-        self.data[guild.id][user] = current_xp
-        await storage.set_value('xp', f'{guild.id}:{user}', current_xp)
+        current_xp['xp'] += value
+        if mark_activity:
+            current_xp['activity'] = int(datetime.now(timezone.utc).timestamp())
+        self.data[guild.id][str(user.id)] = current_xp
+        await storage.set_value('xp', f'{guild.id}:{str(user.id)}', current_xp)
        
-        allowedRoles = list(filter(lambda x: x['level'] <= current_xp, settings['levels']))
-        disallowedRoles = list(filter(lambda x: x['level'] > current_xp, settings['levels']))
+        allowedRoles = list(filter(lambda x: x['level'] <= current_xp['xp'], settings['levels']))
+        disallowedRoles = list(filter(lambda x: x['level'] > current_xp['xp'], settings['levels']))
         currentUserRoles = list(map(lambda x: x.id, filter(lambda x: x.id, user.roles)))
         
         rolesToAdd = []
@@ -139,7 +166,12 @@ class XP(commands.GroupCog, group_name='xp'):
 
     async def get_xp(self, guildid, user):
         storage = self.bot.get_cog('Storage')
-        current_xp = await storage.get_value('xp', f'{guildid}:{user}', 0)
+        current_xp = await storage.get_value('xp', f'{guildid}:{str(user.id)}', {'null': True})
+        if current_xp == {'null': True}:
+            current_xp = await storage.get_value('xp', f'{guildid}:{user}', 0)
+        if type(current_xp) is int:
+            current_xp = {'xp': current_xp, 'activity': 0, 'name': user.name}
+        
         return current_xp
 
     @commands.Cog.listener()
@@ -149,9 +181,9 @@ class XP(commands.GroupCog, group_name='xp'):
         if not await self.is_enabled(msg.guild.id):
             return
         if len(msg.attachments) > 0:
-            await self.add_xp(msg.guild, msg.author, 2)
+            await self.add_xp(msg.guild, msg.author, 2, True)
         else:
-            await self.add_xp(msg.guild, msg.author, 1)
+            await self.add_xp(msg.guild, msg.author, 1, True)
 
     @commands.hybrid_command()
     async def check(self, ctx):
@@ -159,7 +191,7 @@ class XP(commands.GroupCog, group_name='xp'):
             return
         current_xp = await self.get_data(ctx.guild.id, ctx.author)
         await self.add_xp(ctx.guild, ctx.author, -10)
-        await ctx.reply(f'You currently have {current_xp} XP... oh no actually - check that again..')
+        await ctx.reply(f'You currently have {current_xp["xp"]} XP... oh no actually - check that again..')
 
     @commands.hybrid_command()
     async def set_level(self, ctx, level: int, role: discord.Role):

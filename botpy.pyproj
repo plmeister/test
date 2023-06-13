@@ -26,6 +26,7 @@
     <Compile Include="cogs\storage.py" />
     <Compile Include="cogs\scores.py" />
     <Compile Include="cogs\count.py" />
+    <Compile Include="cogs\timers.py" />
     <Compile Include="cogs\xp.py" />
     <Compile Include="cogs\dice.py" />
     <Compile Include="cogs\greeter.py" />
