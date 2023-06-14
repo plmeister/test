@@ -10,6 +10,7 @@ from cogs.storage import Storage
 from cogs.xp import XP
 from cogs.scores import Scores
 from cogs.count import Count
+from cogs.timers import Timer
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -35,6 +36,7 @@ async def configure(bot):
     await bot.add_cog(ImgReact(bot))
     await bot.add_cog(Scores(bot))
     await bot.add_cog(Count(bot))
+    await bot.add_cog(Timer(bot))
 
 if __name__ == "__main__":
     import asyncio

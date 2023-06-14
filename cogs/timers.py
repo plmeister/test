@@ -9,10 +9,11 @@ from discord.ext import tasks
 from dictcache import DictCache
 import checks
 
-class Timer(commands.GroupCog, group_name='timers'):
+class Timer(commands.GroupCog, group_name='timer'):
     def __init__(self, bot):
         self.bot = bot
         self.settings = DictCache()
+        self.timers = DictCache()
 
     async def load_settings(self, guildid):
         if guildid in self.settings:
@@ -26,6 +27,18 @@ class Timer(commands.GroupCog, group_name='timers'):
 
         return loadSettings
 
+    async def load_timers(self, guildid):
+        storage = self.bot.get_cog('Storage')
+        x = await storage.load_doc('timer', f'timers:{guildid}')
+        if x is None:
+            x = {'timers': {}}
+        self.timers[guildid] = x
+        return x
+    
+    async def save_timers(self, guildid, timers):
+        storage = self.bot.get_cog('Storage')
+        x = await storage.save_doc('timer', f'timers:{guildid}', timers)
+
     async def save_settings(self, guildid):
         storage = self.bot.get_cog('Storage')
         await storage.save_doc('timer', f'settings:{guildid}', self.settings[guildid])
@@ -35,7 +48,7 @@ class Timer(commands.GroupCog, group_name='timers'):
         return await settings.is_cog_enabled(guildid, 'timer')
     
     @commands.hybrid_command()
-    async def countdown(self, ctx, member: discord.Member, duration: str, description: str):
+    async def countdown(self, ctx, member: discord.Member, description: str, days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0):
         if not await self.is_enabled(ctx.guild.id):
             return
         #settings = await self.load_settings(ctx.guild.id)
@@ -47,43 +60,78 @@ class Timer(commands.GroupCog, group_name='timers'):
                 return
         else:
             member = ctx.author
-        
-        inputSplit = re.split('(\d+)', duration)
-        del inputSplit[0]
 
-        seconds = 0
+        totalseconds = (days * 86400) + (hours * 3600) + (minutes * 60) + seconds
+    
+        all_timers = await self.load_timers(ctx.guild.id)
+        key = str(member.id)
+        if key in all_timers:
+            member_timers = all_timers[str(member.id)]
+        else:
+            member_timers = []
 
-        #  Looping through inputSplit, from first to last letter
-        for i in range(1, len(inputSplit),2):
-            timeModifier = inputSplit[i]     # Modifier is the letter
-            timeValue = int(inputSplit[i-1]) # Value is number before modifier
+        now = int(datetime.now(timezone.utc).timestamp())
+        countdown = now + totalseconds
 
-            # Same if loop as yours. Checking modifiers and adding the value
-            if timeModifier == "d":
-                seconds += 86400 * timeValue
-            elif timeModifier == "h":
-                seconds += 3600 * timeValue
-            elif timeModifier == "m":
-                seconds += 60 * timeValue
-            elif timeModifier == "s":
-                seconds += timeValue
-            
-        current_timers = await self.load_timers(ctx.guild.id, member)
-        now = datetime.now(timezone.utc)
+        member_timers.append({'type': 'countdown', 'created': now, 'timestamp': countdown, 'description': description, 'addedby': ctx.author.id})
 
-        current_timers.append({})
-
-        await self.save_settings(ctx.guild.id)
-        await ctx.send('Done')
+        await self.save_timers(ctx.guild.id, all_timers)
+        await ctx.send(f"Countdown '{description}' set for {member}, ending <t:{countdown}:R> \<t:{countdown}:R\> <t:{countdown}> \<t:{countdown}\>")
 
     @commands.hybrid_command()
-    async def remove(self, ctx, storage_channel: discord.TextChannel):
+    async def list(self, ctx, member: discord.Member = None):
         if not await self.is_enabled(ctx.guild.id):
             return
-        if not await checks.is_admin(self.bot, ctx):
-            return
-        settings = await self.load_settings(ctx.guild.id)
-        del settings['channels']
-        await self.save_settings(ctx.guild.id)
-        await ctx.send('Done')
+        all_timers = await self.load_timers(ctx.guild.id)
+        if member == None:
+            member = ctx.author
+        await ctx.send
 
+    @commands.hybrid_command()
+    async def stopwatch(self, ctx):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        
+        await ctx.send(view=StopWatch().create(), embed=discord.Embed(title="Stopwatch", description="Get Ready..."))
+
+class StopWatch:
+    def __init__(self):
+        self.start_button = StartButton(discord.ButtonStyle.green, self.onstart)
+        self.stop_button = StopButton(discord.ButtonStyle.red, self.onstop)
+        pass
+    def create(self):
+        self.view = discord.ui.View()
+        
+        self.view.add_item(self.start_button)
+        self.view.add_item(self.stop_button)
+        return self.view
+
+    async def onstart(self, interaction):
+        self.started = datetime.now(timezone.utc)
+        self.stop_button.disabled = False
+        await interaction.response.edit_message(view=self.view, embed=discord.Embed(title="Stopwatch", description="GO!"))
+
+    async def onstop(self, interaction):
+        self.stopped = datetime.now(timezone.utc)
+        time = int((self.stopped - self.started).total_seconds())
+        await interaction.response.edit_message(view=None, embed=None, content = f"Time was {time} seconds - {interaction.user.display_name}")
+
+
+
+class StartButton(discord.ui.Button):
+    def __init__(self, style: discord.ButtonStyle, callback):
+        super().__init__(label="Start", style=style)
+        self.oncallback = callback
+
+    async def callback(self, interaction: discord.Interaction):
+        self.disabled = True
+        await self.oncallback(interaction)
+        
+class StopButton(discord.ui.Button):
+    def __init__(self, style: discord.ButtonStyle, callback):
+        super().__init__(label="Stop", style=style)
+        self.disabled = True
+        self.oncallback = callback
+
+    async def callback(self, interaction: discord.Interaction):
+        await self.oncallback(interaction)
