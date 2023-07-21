@@ -122,6 +122,35 @@ class XP(commands.GroupCog, group_name='xp'):
             page_counter += 1
 
     @commands.hybrid_command()
+    async def show_inactive(self, ctx, role: discord.Role, days_inactive: int, limit: int = 10, page: int = 1):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
+            return
+        
+        timenow = int(datetime.now(timezone.utc).timestamp())
+        seconds_inactive = days_inactive * 86400
+
+        data = []
+        for m in role.members:
+            current_xp = await self.get_data(ctx.guild.id, m)
+            if timenow - current_xp['activity'] > seconds_inactive:
+                last_active = datetime.utcfromtimestamp(current_xp['activity'])
+                data.append([m.display_name, current_xp['xp'], last_active.isoformat()])
+
+        data = sorted(data, key = lambda x: -x[1])
+        d2 = []
+        prev = None
+        for i,d in enumerate(data):
+            d2.append([d[0][:15], d[1], d[2]])
+        page_counter = 1
+        while d2 != []:
+            paged_data, d2 = d2[:limit], d2[limit:]
+            output = t2a(header=["Member", "XP", "Last Active"], body=paged_data, style=PresetStyle.thin_compact)
+            await ctx.channel.send(f'```\n{output}\n(page {page_counter})```')
+            page_counter += 1
+
+    @commands.hybrid_command()
     async def mark_inactive(self, ctx, role: discord.Role, add_to_role: discord.Role, days_inactive: int):
         if not await self.is_enabled(ctx.guild.id):
             return
