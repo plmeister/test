@@ -122,6 +122,19 @@ class XP(commands.GroupCog, group_name='xp'):
             page_counter += 1
 
     @commands.hybrid_command()
+    async def kick_role(self, ctx, role: discord.Role):
+        if not await self.is_enabled(ctx.guild.id):
+            return
+        if not await checks.is_admin(self.bot, ctx):
+            return
+        
+        for m in role.members:
+            if not m.bot: # don't kick bots
+                if not await checks.is_admin(self.bot, ctx): # don't kick admins
+                    await ctx.guild.kick(m)
+                    await ctx.channel.send(f"User {m} has been kicked")
+
+    @commands.hybrid_command()
     async def show_inactive(self, ctx, role: discord.Role, days_inactive: int, limit: int = 10, page: int = 1):
         if not await self.is_enabled(ctx.guild.id):
             return
